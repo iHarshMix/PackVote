@@ -1,0 +1,49 @@
+from pydantic import BaseModel
+from uuid import UUID
+from datetime import datetime
+
+# ── REST request models ──────────────────────────────────────────────────────
+
+class TripCreate(BaseModel):
+    name: str
+    dates_rough: str
+    participant_count: int
+    organiser_email: str          # used only for recovery — no password, no login
+
+class SwipeResponse(BaseModel):
+    destination: str
+    liked: bool
+
+class SurveySubmit(BaseModel):
+    participant_token: UUID
+    swipes: list[SwipeResponse]
+    budget_max: int
+    unavailable_dates: list[str]
+
+class VoteSubmit(BaseModel):
+    participant_token: UUID
+    ranking: list[str]   # ["Goa", "Coorg", "Kasol"]
+
+class TripRecoverRequest(BaseModel):
+    email: str
+
+# ── REST response models ─────────────────────────────────────────────────────
+
+class TripOut(BaseModel):
+    id: UUID
+    name: str
+    status: str
+    management_token: UUID        # returned once at creation — organiser bookmarks or emails self
+    created_at: datetime
+
+class ParticipantOut(BaseModel):
+    id: UUID
+    name: str
+    unique_token: UUID
+    survey_url: str
+
+class RecommendationOut(BaseModel):
+    destination: str
+    fit_reason: str
+    tradeoff: str
+    budget_estimate: int

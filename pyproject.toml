@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "packvote"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    # Backend
+    "fastapi>=0.110.0",
+    "uvicorn[standard]",
+    "sqlalchemy>=2.0",
+    "psycopg2-binary",
+    "pgvector",             # vector column type + <=> operator support
+    "pydantic>=2.0",
+    "pydantic-settings",
+    "python-dotenv",
+    "websockets",
+    # Frontend
+    "streamlit>=1.35.0",
+    # AI pipeline
+    "langchain>=0.2.0",
+    "langchain-openai",     # Default provider
+    "langchain-anthropic",  # Optional alternate provider
+    "langchain-google-genai", # Optional alternate provider
+    "langgraph>=0.1.0",
+    "langsmith",
+    "openai",               # direct client for embedding calls
+    # Organiser recovery
+    "resend",                # trip management link emails
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "httpx",        # FastAPI test client
+    "ruff",         # linter
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/packvote"]
