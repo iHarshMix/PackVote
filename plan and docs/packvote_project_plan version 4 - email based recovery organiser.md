@@ -1286,7 +1286,7 @@ To demonstrate professional software engineering practices, we will use Git feat
 2. For each step below, we will branch out (e.g., `git checkout -b feat/step-0-scaffold`).
 3. We will execute the step, commit the code, and merge back to `main` before proceeding to the next step.
 
-- [ ] **Step 0 — Scaffold**
+- [x] **Step 0 — Scaffold**
 - Create folder structure, `pyproject.toml`, `environment.yml`
 - Run `conda env create --prefix ./env -f environment.yml`
 - Verify editable install: `python -c "from packvote.shared.schemas import TripCreate"`

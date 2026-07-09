@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Goa",
+    "vibe_tags": ["Beach", "Party", "Relaxing", "Seafood"],
+    "budget_low": 10000,
+    "budget_high": 50000,
+    "best_months": ["November", "December", "January", "February"],
+    "activities": ["Scuba diving", "Nightlife", "Sunbathing"]
+  },
+  {
+    "name": "Manali",
+    "vibe_tags": ["Mountains", "Adventure", "Snow", "Nature"],
+    "budget_low": 15000,
+    "budget_high": 40000,
+    "best_months": ["October", "November", "December", "January", "February"],
+    "activities": ["Skiing", "Trekking", "Paragliding"]
+  },
+  {
+    "name": "Coorg",
+    "vibe_tags": ["Coffee", "Nature", "Quiet", "Hills"],
+    "budget_low": 12000,
+    "budget_high": 35000,
+    "best_months": ["September", "October", "November", "December", "January", "February", "March"],
+    "activities": ["Coffee tasting", "Trekking", "Waterfalls"]
+  },
+  {
+    "name": "Kasol",
+    "vibe_tags": ["Hippie", "Mountains", "Trekking", "Cafes"],
+    "budget_low": 8000,
+    "budget_high": 25000,
+    "best_months": ["March", "April", "May", "June"],
+    "activities": ["Trekking", "Cafe hopping", "Camping"]
+  }
+]
