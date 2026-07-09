@@ -1292,7 +1292,7 @@ To demonstrate professional software engineering practices, we will use Git feat
 - Verify editable install: `python -c "from packvote.shared.schemas import TripCreate"`
 - Commit skeleton with all `__init__.py` files in place
 
-- [ ] **Step 1 — Backend foundation**
+- [x] **Step 1 — Backend foundation**
 - `core/database.py` — SQLAlchemy engine, `SessionLocal`, `get_db` dependency
 - `core/config.py` — pydantic-settings reading `.env`
 - `models/db.py` — ORM models for all 6 tables (including destinations), `trips` includes `organiser_email` + `management_token` + `vote_deadline`
