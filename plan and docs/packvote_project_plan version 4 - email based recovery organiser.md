@@ -1267,6 +1267,15 @@ Use LangSmith's comparison view to evaluate prompt v1 vs v2 — filter by `promp
 
 ---
 
+## AI Assistant Workflow Rules
+
+To maintain consistency across different chat sessions, the AI assistant must follow these rules during development:
+1. **Never delete original plan text:** If we deviate from the technical design (e.g., adding a new DB column or API route), add a blockquote like `> **Implementation Update (Date):** [Reason for change]` next to the relevant section instead of deleting or overwriting the original text.
+2. **Update the Build Order Checklist:** When a step in the Build Order is completed, mark its checkbox (`- [x]`) to track progress visually.
+3. **Use Artifacts for Micro-tasks:** Do not clutter this document with granular to-dos. Use the AI's internal `task.md` artifact to track messy micro-tasks during execution, and close it when the step is complete.
+
+---
+
 ## Build Order
 
 Build in this sequence. Each step is independently testable before wiring the next.
@@ -1277,13 +1286,13 @@ To demonstrate professional software engineering practices, we will use Git feat
 2. For each step below, we will branch out (e.g., `git checkout -b feat/step-0-scaffold`).
 3. We will execute the step, commit the code, and merge back to `main` before proceeding to the next step.
 
-**Step 0 — Scaffold**
+- [ ] **Step 0 — Scaffold**
 - Create folder structure, `pyproject.toml`, `environment.yml`
 - Run `conda env create --prefix ./env -f environment.yml`
 - Verify editable install: `python -c "from packvote.shared.schemas import TripCreate"`
 - Commit skeleton with all `__init__.py` files in place
 
-**Step 1 — Backend foundation**
+- [ ] **Step 1 — Backend foundation**
 - `core/database.py` — SQLAlchemy engine, `SessionLocal`, `get_db` dependency
 - `core/config.py` — pydantic-settings reading `.env`
 - `models/db.py` — ORM models for all 6 tables (including destinations), `trips` includes `organiser_email` + `management_token` + `vote_deadline`
@@ -1293,7 +1302,7 @@ To demonstrate professional software engineering practices, we will use Git feat
 - Seed destinations: embed `seeds/destinations.json` → insert into `destinations` table
 - Test: `pytest tests/test_api.py::test_create_trip`
 
-**Step 2 — Survey data layer**
+- [ ] **Step 2 — Survey data layer**
 - `routers/responses.py` — `POST /responses` with token validation + **status guard** (reject if trip not in `survey` phase)
 - Pipeline trigger logic in background task (with A/B `prompt_version` coin flip)
 - `GET /trips/{id}/status` — polling fallback endpoint for dashboard
@@ -1301,20 +1310,20 @@ To demonstrate professional software engineering practices, we will use Git feat
 - Test: submit mock swipes, verify `responded = true` in DB
 - Test: verify status guard rejects responses when trip is not in survey phase
 
-**Step 3 — Streamlit survey UI**
+- [ ] **Step 3 — Streamlit survey UI**
 - `frontend/pages/2_survey.py` — card swipe with `st.button` (upgrade to drag later)
 - Budget slider + date picker
 - Reads `?token=` from `st.query_params`
 - Connects to `POST /responses`
 
-**Step 3.5 — Organiser recovery**
+- [ ] **Step 3.5 — Organiser recovery**
 - `core/email.py` — Resend client wrapper, `send_management_link()`
 - `routers/recovery.py` — `GET /trips/manage/{token}`, `POST /trips/recover`
 - `frontend/pages/6_manage.py` — management view with copy-link buttons per participant
 - `frontend/pages/7_recover.py` — email entry, calls `/trips/recover`
 - Test: create trip, hit recover endpoint, verify email send is called with correct token (mock Resend in tests)
 
-**Step 4 — LangGraph pipeline**
+- [ ] **Step 4 — LangGraph pipeline**
 - Build and unit-test all 4 nodes in isolation with mocked state
 - Start with Node 1 (aggregate) — JOINs `destinations` table for `vibe_tags` via own `SessionLocal()`
 - Add Node 2 (retrieve): pgvector query via own `SessionLocal()`, verify correct destinations for test query
@@ -1324,17 +1333,17 @@ To demonstrate professional software engineering practices, we will use Git feat
 - Wire graph in `graph.py`
 - Connect LangSmith (`LANGCHAIN_TRACING_V2=true`) and verify all 4 nodes appear as spans
 
-**Step 5 — Prompt versioning**
+- [ ] **Step 5 — Prompt versioning**
 - Push prompt text files to LangSmith Hub
 - Replace hardcoded strings with `hub.pull()`
 - Verify prompt version tag appears on runs in LangSmith
 
-**Step 6 — WebSocket live dashboard**
+- [ ] **Step 6 — WebSocket live dashboard**
 - `websockets/manager.py` — connection manager + broadcast helper (supports multiple channels)
 - Wire status broadcast into `POST /responses` handler
 - `frontend/pages/3_dashboard.py` — live status UI
 
-**Step 7 — Reveal + voting**
+- [ ] **Step 7 — Reveal + voting**
 - `routers/results.py` — `/reveal` (status guard: requires `reveal`/`voting`/`complete`) and `/result` endpoints
 - `POST /trips/{id}/open-vote` — transitions `reveal` → `voting`, sets `vote_deadline`
 - `frontend/pages/4_reveal.py` — charts + AI rec cards
@@ -1343,12 +1352,12 @@ To demonstrate professional software engineering practices, we will use Git feat
 - Ranked-choice tally with `pytest tests/test_tally.py`
 - Deterministic tiebreak: lowest `budget_estimate` wins (no extra LLM call)
 
-**Step 8 — Result + polish**
+- [ ] **Step 8 — Result + polish**
 - Winner reveal screen + share card
 - End-to-end test with 3 simulated participants via `httpx`
 - Verify all status transitions: `setup → survey → reveal → voting → complete`
 
-**Step 9 — Deployment**
+- [ ] **Step 9 — Deployment**
 - `Dockerfile.backend` + `Dockerfile.frontend`
 - `docker-compose.yml` wiring all three services (pgvector image for DB)
 - GitHub Actions `deploy.yml` — build → ECR → SSH into EC2 → pull & restart
