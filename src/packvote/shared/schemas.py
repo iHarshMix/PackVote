@@ -47,3 +47,12 @@ class RecommendationOut(BaseModel):
     fit_reason: str
     tradeoff: str
     budget_estimate: int
+
+class ForceCloseRequest(BaseModel):
+    management_token: UUID
+
+class ForceCloseResponse(BaseModel):
+    ok: bool
+    responses_received: int
+    total_participants: int
+

@@ -1302,7 +1302,7 @@ To demonstrate professional software engineering practices, we will use Git feat
 - Seed destinations: embed `seeds/destinations.json` → insert into `destinations` table
 - Test: `pytest tests/test_api.py::test_create_trip`
 
-- [ ] **Step 2 — Survey data layer**
+- [x] **Step 2 — Survey data layer**
 - `routers/responses.py` — `POST /responses` with token validation + **status guard** (reject if trip not in `survey` phase)
 - Pipeline trigger logic in background task (with A/B `prompt_version` coin flip)
 - `GET /trips/{id}/status` — polling fallback endpoint for dashboard
