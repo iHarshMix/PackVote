@@ -1310,7 +1310,7 @@ To demonstrate professional software engineering practices, we will use Git feat
 - Test: submit mock swipes, verify `responded = true` in DB
 - Test: verify status guard rejects responses when trip is not in survey phase
 
-- [ ] **Step 3 — Streamlit survey UI**
+- [x] **Step 3 — Streamlit survey UI**
 - `frontend/pages/2_survey.py` — card swipe with `st.button` (upgrade to drag later)
 - Budget slider + date picker
 - Reads `?token=` from `st.query_params`
