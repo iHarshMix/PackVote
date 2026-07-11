@@ -26,6 +26,8 @@ Build an end-to-end web app that eliminates the chaos of group travel planning. 
 | Observability | LangSmith | Trace every LangGraph node |
 | Database | PostgreSQL + pgvector | Relational data + vector similarity search |
 | Vector embeddings | `text-embedding-3-small` (OpenAI) | Destination profile embeddings for RAG |
+
+> **Implementation Update (2026-07-10):** The LLM and Embedding rows above are now provider-agnostic. A central factory (`core/llm.py`) reads `LLM_PROVIDER` and `EMBEDDING_PROVIDER` from `.env` and returns the appropriate LangChain model (OpenAI, Anthropic, or Google). The current deployment uses `google/gemini-1.5-pro` for LLM and `google/text-embedding-004` for embeddings.
 | Organiser recovery | Resend | Email trip management link on request |
 | Containerisation | Docker + Docker Compose | Local dev + deployment |
 | Cloud | AWS EC2 + AWS ECR | Docker Compose on EC2 via GitHub Actions |
@@ -417,6 +419,8 @@ BACKEND_URL=http://localhost:8000
 FRONTEND_URL=http://localhost:8501
 ```
 
+> **Implementation Update (2026-07-10):** The `.env` file now includes `LLM_PROVIDER`, `LLM_MODEL`, `EMBEDDING_PROVIDER`, `EMBEDDING_MODEL`, `GOOGLE_API_KEY`, and `ANTHROPIC_API_KEY` variables. Only the API key for the active provider needs to be set. See `.env.example` for the full template.
+
 ---
 
 ### `.env.example`
@@ -585,7 +589,7 @@ recommendations
   budget_estimate   INTEGER
   rank              INTEGER
   prompt_version    TEXT           -- "v1", "v2" — for A/B tracking in LangSmith
-  model_used        TEXT           -- "gpt-4o"
+  model_used        TEXT           -- "gpt-4o" (or whichever model is configured via LLM_PROVIDER/LLM_MODEL)
   created_at        TIMESTAMP
 
 votes
@@ -604,6 +608,8 @@ destinations                        -- RAG knowledge base, seeded once from seed
   best_months       TEXT[]
   activities        TEXT[]
   embedding         vector(1536)   -- text-embedding-3-small output, queried with <=> cosine distance
+
+> **Implementation Update (2026-07-10):** The embedding dimension is tied to the provider. `text-embedding-3-small` uses 1536, but Google's `text-embedding-004` uses 768. The SQLAlchemy model and database schema must be updated if swapping providers mid-project.
 ```
 
 **RAG query pattern — same SQLAlchemy session, no new service:**
@@ -900,6 +906,8 @@ from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(model="gpt-4o")
 ```
+
+> **Implementation Update (2026-07-10):** The hardcoded pattern above is replaced in practice by `get_llm()` from the central factory below. Nodes import `from packvote.backend.core.llm import get_llm` and call `llm = get_llm()` instead.
 
 **Central LLM Factory — `src/packvote/backend/core/llm.py`:**
 ```python
@@ -1391,6 +1399,8 @@ To demonstrate professional software engineering practices, we will use Git feat
 
 **Single LLM — OpenAI only.** `ChatOpenAI` (GPT-4o) handles both generation (Node 3) and critic scoring (Node 4). Chosen for budget reasons — one API key, one billing surface. LangChain's model interface still means swapping in a second provider later is a one-node addition, not a rewrite.
 
+> **Implementation Update (2026-07-10):** The project is now fully model-agnostic via `core/llm.py`. The active provider is configured through `LLM_PROVIDER` and `EMBEDDING_PROVIDER` in `.env`. Current deployment uses Google Gemini.
+
 **JSONB for swipes and votes.** Schema flexibility without complex relational joins. Aggregation in Python not SQL.
 
 **FastAPI `BackgroundTasks` for pipeline trigger.** `POST /responses` returns 200 immediately. Pipeline runs async in background — no blocking, no timeout risk.
@@ -1407,6 +1417,8 @@ To demonstrate professional software engineering practices, we will use Git feat
 
 - **RAG + pgvector:** "Instead of a standalone vector store, I used pgvector — a Postgres extension that adds a vector column type and cosine similarity search. The destination knowledge base lives in the same DB instance as all relational data, so I have one connection, one Docker service, and one backup strategy. The retrieval node embeds the aggregated group preferences with `text-embedding-3-small` and fetches the top-5 relevant destinations. This grounds the LLM — it recommends only from retrieved profiles, which prevents hallucinated budget estimates."
 
+> **Implementation Update (2026-07-10):** Update talking point for model-agnostic approach: "...embeds the aggregated preferences via our `get_embeddings()` factory (currently using Google's `text-embedding-004`)."
+
 - **Structured outputs:** "Wherever the LLM output feeds directly into application logic — Node 3 and Node 4 — I used `.with_structured_output()` with Pydantic models. `result.score` is a float I can compare directly, `result.recommendations` is a typed list I can iterate. No JSON parsing, no try/except, no stripping markdown fences. The same Pydantic models in `shared/schemas.py` are reused as FastAPI response models — defined once."
 
 - **LangSmith:** "Every pipeline run is traced automatically. I can see token cost, latency, and which prompt version was used for each run. I used this to A/B test prompt versions and picked the one that correlated with higher first-choice vote wins."
@@ -1414,6 +1426,8 @@ To demonstrate professional software engineering practices, we will use Git feat
 - **Prompt versioning:** "Prompts are versioned in LangSmith Hub and pulled at runtime with `hub.pull()`. Changing a prompt never requires a code deploy — push a new version and it is live on the next pipeline run."
 
 - **Single LLM choice:** "I used `ChatOpenAI` for both generation and critic scoring — one API key, simpler cost tracking for a portfolio project. LangChain's model interface is provider-agnostic, so adding a second model later — say, routing hard cases to a stronger model — is a one-node addition to the graph, not a rewrite of the pipeline."
+
+> **Implementation Update (2026-07-10):** Talking point should now reference the `core/llm.py` factory pattern: "I built a central `get_llm()` / `get_embeddings()` factory that reads the provider from `.env`. Swapping from OpenAI to Google Gemini was a single env var change — zero code edits in the pipeline nodes."
 
 - **WebSockets:** "I have two WebSocket channels — one for response status, one for vote status. The vote channel intentionally only broadcasts a count, not rankings, so the leaderboard stays blurred until the timer hits zero. Both channels are served by the same FastAPI connection manager."
 

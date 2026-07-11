@@ -1,37 +1,49 @@
 import json
-import os
-from openai import OpenAI
 from packvote.backend.core.database import SessionLocal, engine, Base
 from packvote.backend.models.db import Destination
 from packvote.backend.core.config import settings
 
+
+from sqlalchemy import text
+
 def main():
+    with engine.connect() as conn:
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        conn.commit()
     Base.metadata.create_all(bind=engine)
-    
+
     with open("seeds/destinations.json", "r") as f:
         data = json.load(f)
-        
+
     db = SessionLocal()
     try:
         # Clear existing destinations
         db.query(Destination).delete()
-        
-        client = None
-        if settings.openai_api_key and settings.openai_api_key != "sk-...":
-            client = OpenAI(api_key=settings.openai_api_key)
-        else:
-            print("Warning: OPENAI_API_KEY is not set or is placeholder. Using mocked [0.0]*1536 embeddings.")
-            
+
+        # Try to initialise the embeddings model via the provider-agnostic factory
+        embeddings_model = None
+        try:
+            from packvote.backend.core.llm import get_embeddings
+            embeddings_model = get_embeddings()
+            # Quick sanity check — will raise if the API key is missing/invalid
+            _ = embeddings_model.embed_query("test")
+            print(f"Using {settings.embedding_provider}/{settings.embedding_model} for embeddings.")
+        except Exception as e:
+            print(f"Warning: Could not initialise embedding provider "
+                  f"({settings.embedding_provider}/{settings.embedding_model}): {e}")
+            print(f"Falling back to mocked [0.0]*{settings.embedding_dimension} embeddings.")
+            embeddings_model = None
+
         for d in data:
-            embedding = [0.0] * 1536
-            if client:
-                profile_text = f"{d['name']} | Vibes: {', '.join(d['vibe_tags'])} | Activities: {', '.join(d['activities'])} | Best months: {', '.join(d['best_months'])}"
-                response = client.embeddings.create(
-                    model="text-embedding-3-small",
-                    input=profile_text
+            embedding = [0.0] * settings.embedding_dimension
+            if embeddings_model:
+                profile_text = (
+                    f"{d['name']} | Vibes: {', '.join(d['vibe_tags'])} | "
+                    f"Activities: {', '.join(d['activities'])} | "
+                    f"Best months: {', '.join(d['best_months'])}"
                 )
-                embedding = response.data[0].embedding
-                
+                embedding = embeddings_model.embed_query(profile_text)
+
             dest = Destination(
                 name=d["name"],
                 vibe_tags=d["vibe_tags"],
@@ -39,14 +51,15 @@ def main():
                 budget_high=d["budget_high"],
                 best_months=d["best_months"],
                 activities=d["activities"],
-                embedding=embedding
+                embedding=embedding,
             )
             db.add(dest)
-            
+
         db.commit()
         print(f"Successfully seeded {len(data)} destinations.")
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     main()

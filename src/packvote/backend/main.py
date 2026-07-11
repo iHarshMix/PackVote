@@ -5,7 +5,13 @@ from packvote.backend.core.database import Base, engine
 # when calling Base.metadata.create_all
 from packvote.backend.models import db
 
-# Automatically create database tables when the application starts
+from sqlalchemy import text
+
+# Automatically create the vector extension and database tables when the application starts
+with engine.connect() as conn:
+    conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+    conn.commit()
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="PackVote API")

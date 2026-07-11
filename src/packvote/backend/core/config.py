@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4o"
     embedding_provider: str = "openai"
     embedding_model: str = "text-embedding-3-small"
+    embedding_dimension: int = 1536
     langchain_api_key: str = ""
     langchain_project: str = "packvote"
     langchain_tracing_v2: str = "true"

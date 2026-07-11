@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
 from packvote.backend.core.database import Base
+from packvote.backend.core.config import settings
 
 def utcnow():
     return datetime.now(timezone.utc)
@@ -98,4 +99,4 @@ class Destination(Base):
     budget_high = Column(Integer, nullable=False)
     best_months = Column(ARRAY(String), nullable=False)
     activities = Column(ARRAY(String), nullable=False)
-    embedding = Column(Vector(1536), nullable=True)
+    embedding = Column(Vector(settings.embedding_dimension), nullable=True)
