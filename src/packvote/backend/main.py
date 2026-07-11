@@ -1,9 +1,8 @@
 from fastapi import FastAPI
-from packvote.backend.routers import trips, responses
+from packvote.backend.routers import trips, responses, recovery
 from packvote.backend.core.database import Base, engine
 # We must import our db models so that SQLAlchemy knows about them
 # when calling Base.metadata.create_all
-from packvote.backend.models import db
 
 from sqlalchemy import text
 
@@ -18,6 +17,7 @@ app = FastAPI(title="PackVote API")
 
 app.include_router(trips.router)
 app.include_router(responses.router)
+app.include_router(recovery.router)
 @app.get("/health")
 def health_check():
     return {"status": "ok"}

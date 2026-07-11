@@ -54,7 +54,7 @@ def submit_response(
 
     # 4. Check if everyone responded
     total_participants = db.query(Participant).filter(Participant.trip_id == trip.id).count()
-    responded_participants = db.query(Participant).filter(Participant.trip_id == trip.id, Participant.responded == True).count()
+    responded_participants = db.query(Participant).filter(Participant.trip_id == trip.id, Participant.responded).count()
 
     if responded_participants >= total_participants:
         # A/B prompt_version coin flip
@@ -91,7 +91,7 @@ def force_close_survey(
         raise HTTPException(status_code=400, detail="Trip is not in survey phase")
         
     total_participants = db.query(Participant).filter(Participant.trip_id == trip.id).count()
-    responded_participants = db.query(Participant).filter(Participant.trip_id == trip.id, Participant.responded == True).count()
+    responded_participants = db.query(Participant).filter(Participant.trip_id == trip.id, Participant.responded).count()
     
     # A/B prompt_version coin flip
     prompt_version = "v1" if random.random() > 0.5 else "v2"

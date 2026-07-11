@@ -48,7 +48,15 @@ class RecommendationOut(BaseModel):
     tradeoff: str
     budget_estimate: int
 
+class TripManageOut(BaseModel):
+    """Full management view — served only via management_token, never guessable."""
+    id: UUID
+    name: str
+    status: str
+    participants: list[ParticipantOut]
+
 class ForceCloseRequest(BaseModel):
+
     management_token: UUID
 
 class ForceCloseResponse(BaseModel):

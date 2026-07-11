@@ -1,4 +1,3 @@
-import pytest
 from fastapi.testclient import TestClient
 from packvote.backend.main import app
 
@@ -27,7 +26,7 @@ def test_survey_endpoints():
     assert part_resp.status_code == 200
     participants = part_resp.json()
     p1_token = participants[0]["unique_token"]
-    p2_token = participants[1]["unique_token"]
+    participants[1]["unique_token"]
 
     # 3. Check status
     status_resp = client.get(f"/trips/{trip_id}/status")
@@ -75,6 +74,6 @@ def test_survey_endpoints():
         "management_token": management_token
     })
     assert force_close_resp.status_code == 200
-    assert force_close_resp.json()["ok"] == True
+    assert force_close_resp.json()["ok"]
     assert force_close_resp.json()["responses_received"] == 1
     assert force_close_resp.json()["total_participants"] == 3 # 2 + 1 organiser

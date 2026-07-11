@@ -1324,7 +1324,7 @@ To demonstrate professional software engineering practices, we will use Git feat
 - Reads `?token=` from `st.query_params`
 - Connects to `POST /responses`
 
-- [ ] **Step 3.5 — Organiser recovery**
+- [x] **Step 3.5 — Organiser recovery**
 - `core/email.py` — Resend client wrapper, `send_management_link()`
 - `routers/recovery.py` — `GET /trips/manage/{token}`, `POST /trips/recover`
 - `frontend/pages/6_manage.py` — management view with copy-link buttons per participant
