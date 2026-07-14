@@ -36,6 +36,13 @@ When using Google Gemini for text embeddings in developer environments:
 * **Dimension Size:** `3072` (Ensure this is set as `EMBEDDING_DIMENSION` in `.env`)
 * Note: `models/embedding-001` and `models/text-embedding-004` are deprecated/unsupported on developer endpoints and will throw 404 errors.
 
+## pgvector Cosine Similarity Casting Rule
+When running raw SQL queries using the pgvector cosine similarity operator (`<=>`) with python list bindings, always cast the bound parameter explicitly to `vector` in the query to avoid a `psycopg2.errors.UndefinedFunction: operator does not exist: vector <=> numeric[]` exception:
+```sql
+SELECT name FROM destinations ORDER BY embedding <=> CAST(:emb AS vector) LIMIT 5
+```
+
 ## Persistent Database Testing Isolation Rule
 When executing test suites that write to a persistent local Docker database, always use random identifiers (like UUIDs) for keys, emails, and identifiers in test mocks to prevent collisions with residual data from previous test runs.
+
 

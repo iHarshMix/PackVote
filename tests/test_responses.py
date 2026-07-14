@@ -4,9 +4,12 @@ from packvote.backend.main import app
 from packvote.backend.core.database import SessionLocal
 from packvote.backend.models.db import Trip, TripStatus
 
+from unittest.mock import patch
+
 client = TestClient(app)
 
-def test_survey_endpoints():
+@patch("packvote.backend.routers.responses.trigger_pipeline")
+def test_survey_endpoints(mock_trigger_pipeline):
     # 1. Create Trip
     trip_resp = client.post("/trips", json={
         "name": "Test Survey Trip",

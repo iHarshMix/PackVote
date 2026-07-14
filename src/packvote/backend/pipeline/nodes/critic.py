@@ -1,0 +1,63 @@
+import os
+import logging
+import langchainhub
+from langchain_core.prompts import PromptTemplate
+from packvote.shared.schemas import CriticOutput
+from packvote.backend.core.llm import get_llm
+from packvote.backend.pipeline.state import TripState
+
+logger = logging.getLogger(__name__)
+
+class HubWrapper:
+    def __init__(self):
+        try:
+            self.client = langchainhub.Client()
+        except Exception:
+            self.client = None
+
+    def pull(self, owner_repo_commit: str):
+        if not self.client:
+            raise RuntimeError("LangChain Hub Client not initialized")
+        return self.client.pull(owner_repo_commit)
+
+hub = HubWrapper()
+
+
+def critic_node(state: TripState) -> TripState:
+    llm = get_llm()
+    
+    critic_prompt = None
+    try:
+        critic_prompt = hub.pull("packvote/critic-rubric:v1")
+        logger.info("Pulled critic rubric from LangSmith Hub")
+    except Exception as e:
+        logger.warning(f"Failed to pull critic rubric from LangSmith Hub, falling back to local file. Error: {e}")
+        local_path = os.path.join("prompts", "critic_rubric_v1.txt")
+        with open(local_path, "r", encoding="utf-8") as f:
+            template_str = f.read()
+        critic_prompt = PromptTemplate.from_template(template_str)
+
+    structured_llm = llm.with_structured_output(CriticOutput)
+    chain = critic_prompt | structured_llm
+
+    result: CriticOutput = chain.invoke({
+        "recommendations": state["recommendations"],
+        "aggregated": state["aggregated"],
+    })
+
+    state["critic_score"] = result.score
+    state["critic_feedback"] = result.feedback
+    return state
+
+def should_retry(state: TripState) -> str:
+    if state["critic_score"] < 0.7 and state["retry_count"] < 2:
+        state["retry_count"] += 1
+        logger.info(f"Critic score {state['critic_score']} < 0.7. Retrying (attempt {state['retry_count']}/2). Feedback: {state['critic_feedback']}")
+        return "retry"
+    
+    if state["critic_score"] < 0.7:
+        logger.warning(
+            f"Trip {state['trip_id']}: accepting recommendations with score "
+            f"{state['critic_score']:.2f} after {state['retry_count']} retries (cap reached)"
+        )
+    return "output"

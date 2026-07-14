@@ -1331,7 +1331,7 @@ To demonstrate professional software engineering practices, we will use Git feat
 - `frontend/pages/7_recover.py` — email entry, calls `/trips/recover`
 - Test: create trip, hit recover endpoint, verify email send is called with correct token (mock Resend in tests)
 
-- [ ] **Step 4 — LangGraph pipeline**
+- [x] **Step 4 — LangGraph pipeline**
 - Build and unit-test all 4 nodes in isolation with mocked state
 - Start with Node 1 (aggregate) — JOINs `destinations` table for `vibe_tags` via own `SessionLocal()`
 - Add Node 2 (retrieve): pgvector query via own `SessionLocal()`, verify correct destinations for test query

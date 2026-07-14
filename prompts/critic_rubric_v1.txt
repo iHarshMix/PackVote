@@ -1,0 +1,10 @@
+Score these travel recommendations from 0.0 to 1.0.
+
+Deduct points if:
+- Any recommendation does not cite specific group preference data
+- Budget estimate falls outside the group sweet spot by more than 20%
+- No compromise pick is included
+- Unavailable dates are not respected
+- Any recommended destination is not from the retrieved profiles list
+
+Provide a score and specific actionable feedback for improvement.

@@ -26,6 +26,7 @@ dependencies = [
     "langchain-google-genai", # Optional alternate provider
     "langgraph>=0.1.0",
     "langsmith",
+    "langchainhub",
     "openai",               # direct client for embedding calls
     # Organiser recovery
     "resend",                # trip management link emails

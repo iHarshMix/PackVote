@@ -64,3 +64,15 @@ class ForceCloseResponse(BaseModel):
     responses_received: int
     total_participants: int
 
+
+# ── Structured LLM Output schemas ───────────────────────────────────────────
+
+class RecommendationsOutput(BaseModel):
+    recommendations: list[RecommendationOut]
+
+
+class CriticOutput(BaseModel):
+    score: float
+    feedback: str
+
+
