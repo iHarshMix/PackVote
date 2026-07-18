@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from uuid import UUID
+from datetime import datetime, timedelta, timezone
 from pydantic import BaseModel
 from packvote.backend.core.database import get_db
 from packvote.backend.models.db import Trip, Participant, TripStatus
-from packvote.shared.schemas import TripCreate, TripOut, ParticipantOut
+from packvote.shared.schemas import TripCreate, TripOut, ParticipantOut, OpenVoteRequest
 from packvote.backend.core.config import settings
 
 router = APIRouter(tags=["trips"])
@@ -90,3 +91,19 @@ def start_survey(trip_id: UUID, db: Session = Depends(get_db)):
         management_token=trip.management_token,
         created_at=trip.created_at
     )
+
+@router.post("/trips/{trip_id}/open-vote")
+def open_vote(trip_id: UUID, payload: OpenVoteRequest, db: Session = Depends(get_db)):
+    """Transition trip from reveal → voting and set the vote deadline."""
+    trip = db.query(Trip).filter(Trip.id == trip_id, Trip.management_token == payload.management_token).first()
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found or invalid management token")
+    if trip.status != TripStatus.reveal:
+        raise HTTPException(status_code=409, detail="Trip is not in reveal phase — cannot open voting yet")
+
+    trip.status = TripStatus.voting
+    trip.vote_deadline = datetime.now(timezone.utc) + timedelta(hours=payload.vote_duration_hours)
+    db.commit()
+
+    return {"status": "voting", "vote_deadline": trip.vote_deadline.isoformat()}
+

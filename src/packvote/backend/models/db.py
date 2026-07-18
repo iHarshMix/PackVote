@@ -28,6 +28,9 @@ class Trip(Base):
     dates_rough = Column(String, nullable=False)
     status = Column(Enum(TripStatus), default=TripStatus.setup, nullable=False)
     vote_deadline = Column(DateTime, nullable=True)
+    winner = Column(String, nullable=True)
+    vote_breakdown = Column(JSONB, nullable=True)
+    ai_summary = Column(String, nullable=True)
     created_at = Column(DateTime, default=utcnow, nullable=False)
 
     participants = relationship("Participant", back_populates="trip")

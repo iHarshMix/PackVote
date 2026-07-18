@@ -196,12 +196,23 @@ def show_dashboard():
         finally:
             db.close()
             
-        st.info("💡 **Next Step:** We will build the formal interactive Reveal & Voting interface in Step 7!")
+        if st.button("👁️ View Full Reveal & Open Voting", type="primary", use_container_width=True):
+            st.session_state["trip_id"] = trip_id
+            st.query_params["trip_id"] = trip_id
+            st.switch_page("pages/4_reveal.py")
             
     elif status == "voting":
-        st.info("Voting is currently active for this trip. (Next Step: We will build the Voting interface in Step 7).")
+        st.info("🗳️ Voting is currently active for this trip.")
+        if st.button("🗳️ Go to Voting Page", type="primary", use_container_width=True):
+            st.session_state["trip_id"] = trip_id
+            st.query_params["trip_id"] = trip_id
+            st.switch_page("pages/5_vote.py")
             
     elif status == "complete":
-        st.success("🏆 The winning destination has been decided! (Next Step: We will build the Results interface in Step 8).")
+        st.success("🏆 The winning destination has been decided!")
+        if st.button("🎉 View Results", type="primary", use_container_width=True):
+            st.session_state["trip_id"] = trip_id
+            st.query_params["trip_id"] = trip_id
+            st.switch_page("pages/5_vote.py")
 
 show_dashboard()

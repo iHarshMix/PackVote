@@ -64,6 +64,22 @@ class ForceCloseResponse(BaseModel):
     responses_received: int
     total_participants: int
 
+class OpenVoteRequest(BaseModel):
+    """POST /trips/{id}/open-vote — organiser starts the voting phase."""
+    management_token: UUID
+    vote_duration_hours: int = 12     # default 12-hour countdown
+
+class RevealOut(BaseModel):
+    """GET /trips/{id}/reveal response — aggregated preferences + AI recommendations."""
+    aggregated: dict
+    recommendations: list[RecommendationOut]
+
+class ResultOut(BaseModel):
+    """GET /trips/{id}/result response — final winner + vote breakdown."""
+    winner: str
+    vote_breakdown: dict      # {"Goa": 3, "Coorg": 1, "Kasol": 1}
+    ai_summary: str           # one-line AI-generated summary of why the winner won
+
 
 # ── Structured LLM Output schemas ───────────────────────────────────────────
 
@@ -74,5 +90,3 @@ class RecommendationsOutput(BaseModel):
 class CriticOutput(BaseModel):
     score: float
     feedback: str
-
-
