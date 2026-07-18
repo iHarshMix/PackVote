@@ -1075,6 +1075,8 @@ def should_retry(state: TripState) -> str:
     return "output"
 ```
 
+> **Implementation Update (2026-07-18):** In the actual implementation, the state mutation (`state["retry_count"] += 1`) was moved from the `should_retry` conditional routing edge to the state-saving `critic_node`. This deviation is necessary because LangGraph discards any state mutations performed within conditional edge evaluation functions, which otherwise leads to an infinite loop of LLM calls in execution.
+
 **Critic rubric — `prompts/critic_rubric_v1.txt`:**
 
 ```
