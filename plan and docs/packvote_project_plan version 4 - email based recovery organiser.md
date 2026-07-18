@@ -1354,7 +1354,7 @@ To demonstrate professional software engineering practices, we will use Git feat
 - Wire status broadcast into `POST /responses` handler
 - `frontend/pages/3_dashboard.py` — live status UI
 
-- [ ] **Step 7 — Reveal + voting**
+- [x] **Step 7 — Reveal + voting**
 - `routers/results.py` — `/reveal` (status guard: requires `reveal`/`voting`/`complete`) and `/result` endpoints
 - `POST /trips/{id}/open-vote` — transitions `reveal` → `voting`, sets `vote_deadline`
 - `frontend/pages/4_reveal.py` — charts + AI rec cards
