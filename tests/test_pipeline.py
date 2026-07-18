@@ -186,6 +186,8 @@ def test_critic_node_and_retry_logic(mock_get_llm):
     assert state["retry_count"] == 2
 
     # Third time should fall through to "output" (capping at 2 retries)
+    state = critic_node(state)
+    assert state["retry_count"] == 3
     assert should_retry(state) == "output"
 
     # 3. Critic score >= 0.7 (no retry)

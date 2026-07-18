@@ -9,12 +9,16 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 st.title("⚙️ Trip Management")
 st.write("Welcome to your trip organizer dashboard! Bookmark this page or keep the link safe.")
 
-# Retrieve management token from URL query params
-token = st.query_params.get("token")
+# Retrieve management token from URL query params or session state fallback
+token = st.query_params.get("token") or st.session_state.get("token")
 if not token:
     st.error("Missing management token! Organisers must access this page via the management link.")
     st.info("💡 If you lost your link, use the recovery page to have it emailed to you.")
     st.stop()
+else:
+    # Sync back to session state and query params to preserve it
+    st.session_state["token"] = token
+    st.query_params["token"] = token
 
 # Fetch trip management data from backend
 with st.spinner("Fetching trip dashboard..."):
@@ -33,6 +37,7 @@ with st.spinner("Fetching trip dashboard..."):
         st.stop()
 
 trip_id = trip_data["id"]
+st.session_state["trip_id"] = trip_id
 trip_name = trip_data["name"]
 trip_status = trip_data["status"]
 participants = trip_data["participants"]
@@ -65,6 +70,14 @@ for p in participants:
     with st.container(border=True):
         st.markdown(f"**{display_name}**")
         st.code(p["survey_url"], language="text")
+
+st.write("---")
+
+# Section: Live Progress Tracking Link
+st.subheader("📊 Live Progress Tracking")
+st.info("You can view response progress and see who has completed swiping in real time.")
+if st.button("Open Live Progress Dashboard", use_container_width=True):
+    st.switch_page("pages/3_dashboard.py")
 
 st.write("---")
 

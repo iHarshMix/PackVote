@@ -50,18 +50,24 @@ def critic_node(state: TripState) -> TripState:
 
     state["critic_score"] = result.score
     state["critic_feedback"] = result.feedback
+    
+    # Increment retry count in the state-saving node if a retry is needed
+    if result.score < 0.7:
+        state["retry_count"] += 1
+        
     return state
 
 
 def should_retry(state: TripState) -> str:
-    if state["critic_score"] < 0.7 and state["retry_count"] < 2:
-        state["retry_count"] += 1
-        logger.info(f"Critic score {state['critic_score']} < 0.7. Retrying (attempt {state['retry_count']}/2). Feedback: {state['critic_feedback']}")
-        return "retry"
-    
     if state["critic_score"] < 0.7:
-        logger.warning(
-            f"Trip {state['trip_id']}: accepting recommendations with score "
-            f"{state['critic_score']:.2f} after {state['retry_count']} retries (cap reached)"
-        )
+        if state["retry_count"] <= 2:
+            logger.info(f"Critic score {state['critic_score']} < 0.7. Retrying (attempt {state['retry_count']}/2). Feedback: {state['critic_feedback']}")
+            return "retry"
+        else:
+            logger.warning(
+                f"Trip {state['trip_id']}: accepting recommendations with score "
+                f"{state['critic_score']:.2f} after 2 retries (cap reached)"
+            )
+            return "output"
+            
     return "output"

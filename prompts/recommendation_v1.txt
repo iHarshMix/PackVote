@@ -1,5 +1,5 @@
 You are a group travel advisor. Given the following group preferences and
-available destination profiles, recommend exactly 3 destinations.
+available destination profiles, recommend exactly 3 unique and distinct destinations. Do not duplicate destination names across recommendations.
 
 Group preferences:
 - Top swiped destinations: {top_destinations}

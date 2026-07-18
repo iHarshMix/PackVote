@@ -52,10 +52,15 @@ st.markdown("""
 
 st.markdown('<div class="header-style">📊 Trip Progress Dashboard</div>', unsafe_allow_html=True)
 
-trip_id = st.query_params.get("trip_id")
+# Retrieve trip_id from URL query params or session state fallback
+trip_id = st.query_params.get("trip_id") or st.session_state.get("trip_id")
 if not trip_id:
     st.error("Missing Trip ID in URL! Please access this page using the dashboard link.")
     st.stop()
+else:
+    # Sync back to session state and query params to preserve it
+    st.session_state["trip_id"] = trip_id
+    st.query_params["trip_id"] = trip_id
 
 # Helper to fetch initial state via HTTP
 def fetch_initial_data(trip_id):
@@ -165,23 +170,38 @@ def show_dashboard():
         
     st.write("")
     
-    # 4. Action button depending on status
+    # 4. Action details depending on status
     if status == "reveal":
         st.success("🎉 All responses are in! The AI recommendation pipeline is complete.")
-        if st.button("👁️ Reveal AI Recommendations & Start Voting", type="primary", use_container_width=True):
-            st.query_params["trip_id"] = trip_id
-            st.switch_page("pages/4_reveal.py")
+        
+        from packvote.backend.core.database import SessionLocal
+        from packvote.backend.models.db import Recommendation
+        import uuid
+        
+        db = SessionLocal()
+        try:
+            recs = db.query(Recommendation).filter(Recommendation.trip_id == uuid.UUID(trip_id)).order_by(Recommendation.rank).all()
+            if recs:
+                st.subheader("💡 AI Travel Recommendations")
+                for r in recs:
+                    with st.container(border=True):
+                        st.markdown(f"### Rank {r.rank}: **{r.destination}**")
+                        st.write(f"💰 **Estimated Budget:** {r.budget_estimate} INR")
+                        st.write(f"👍 **Why it fits:** {r.fit_reason}")
+                        st.write(f"⚖️ **Tradeoff:** {r.tradeoff}")
+            else:
+                st.info("Generating recommendations... Refresh in a moment.")
+        except Exception as e:
+            st.error(f"Error loading recommendations: {e}")
+        finally:
+            db.close()
+            
+        st.info("💡 **Next Step:** We will build the formal interactive Reveal & Voting interface in Step 7!")
             
     elif status == "voting":
-        st.info("Voting is currently active for this trip.")
-        if st.button("🗳️ Go to Voting Page", type="primary", use_container_width=True):
-            st.query_params["trip_id"] = trip_id
-            st.switch_page("pages/5_vote.py")
+        st.info("Voting is currently active for this trip. (Next Step: We will build the Voting interface in Step 7).")
             
     elif status == "complete":
-        st.success("🏆 The winning destination has been decided!")
-        if st.button("🎉 View Results", type="primary", use_container_width=True):
-            st.query_params["trip_id"] = trip_id
-            st.switch_page("pages/8_results.py")
+        st.success("🏆 The winning destination has been decided! (Next Step: We will build the Results interface in Step 8).")
 
 show_dashboard()

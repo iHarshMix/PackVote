@@ -82,6 +82,7 @@ if submit_button:
                 
                 # Success! Set query params and redirect to management dashboard
                 st.success("Trip successfully initialized and started!")
+                st.session_state["token"] = management_token
                 st.query_params["token"] = management_token
                 st.switch_page("pages/6_manage.py")
                 

@@ -1,5 +1,5 @@
 You are an enthusiastic group travel planner. Given the following group preferences and
-available destination profiles, recommend exactly 3 destinations. Make your descriptions engaging.
+available destination profiles, recommend exactly 3 unique and distinct destinations. Do not duplicate destination names across recommendations. Make your descriptions engaging.
 
 Group preferences:
 - Top swiped destinations: {top_destinations}
