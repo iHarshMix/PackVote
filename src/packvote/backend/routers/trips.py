@@ -70,3 +70,23 @@ def create_participants(trip_id: UUID, payload: ParticipantCreate, db: Session =
         db.refresh(p)
         
     return [to_participant_out(p) for p in participants]
+
+@router.post("/trips/{trip_id}/start-survey", response_model=TripOut)
+def start_survey(trip_id: UUID, db: Session = Depends(get_db)):
+    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+    if trip.status != TripStatus.setup:
+        raise HTTPException(status_code=400, detail="Trip is not in setup phase")
+    
+    trip.status = TripStatus.survey
+    db.commit()
+    db.refresh(trip)
+    
+    return TripOut(
+        id=trip.id,
+        name=trip.name,
+        status=trip.status.value,
+        management_token=trip.management_token,
+        created_at=trip.created_at
+    )

@@ -14,6 +14,7 @@ from packvote.backend.core.config import settings
 def test_aggregate_node_success():
     # Setup test trip
     with SessionLocal() as db:
+        db.query(Destination).delete()
         trip = Trip(name="Test Aggregate Trip", organiser_email="test@org.com", dates_rough="Next month")
         db.add(trip)
         db.flush()
@@ -229,6 +230,7 @@ def test_pipeline_integration_end_to_end(mock_critic_llm, mock_rec_llm, mock_get
 
     # Seed DB
     with SessionLocal() as db:
+        db.query(Destination).delete()
         trip = Trip(name="Integration Test Trip", organiser_email="test@integration.com", dates_rough="Next month")
         db.add(trip)
         db.flush()

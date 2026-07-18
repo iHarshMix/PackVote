@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from pydantic import BaseModel
 import random
+import asyncio
 
 import logging
 from packvote.backend.core.database import get_db, SessionLocal
@@ -10,10 +11,69 @@ from packvote.backend.models.db import Trip, Participant, TripStatus, Response a
 from packvote.shared.schemas import SurveySubmit, ForceCloseRequest, ForceCloseResponse
 from packvote.backend.pipeline.graph import pipeline
 from packvote.backend.core.config import settings
+from packvote.backend.websockets.manager import manager
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["responses"])
+
+async def broadcast_trip_status(trip_id: UUID, db: Session):
+    """Fetches full status details of the trip and broadcasts to the status channel."""
+    try:
+        trip = db.query(Trip).filter(Trip.id == trip_id).first()
+        if not trip:
+            return
+        
+        participants = db.query(Participant).filter(Participant.trip_id == trip_id).all()
+        total_participants = len(participants)
+        responded_participants = sum(1 for p in participants if p.responded)
+        
+        participant_list = [
+            {"name": p.name, "responded": p.responded}
+            for p in participants
+        ]
+        
+        message = {
+            "type": "status_update",
+            "trip_id": str(trip_id),
+            "status": trip.status.value,
+            "responded_count": responded_participants,
+            "total_count": total_participants,
+            "participants": participant_list
+        }
+        
+        channel = f"{trip_id}:status"
+        await manager.broadcast(message, channel)
+    except Exception as e:
+        logger.error(f"Failed to broadcast status update for trip {trip_id}: {e}", exc_info=True)
+
+def broadcast_status_sync(trip_id: UUID):
+    """Thread-safe synchronous wrapper to broadcast status from background threads."""
+    try:
+        with SessionLocal() as db:
+            trip = db.query(Trip).filter(Trip.id == trip_id).first()
+            if not trip:
+                return
+            participants = db.query(Participant).filter(Participant.trip_id == trip_id).all()
+            total_participants = len(participants)
+            responded_participants = sum(1 for p in participants if p.responded)
+            participant_list = [{"name": p.name, "responded": p.responded} for p in participants]
+            
+            message = {
+                "type": "status_update",
+                "trip_id": str(trip_id),
+                "status": trip.status.value,
+                "responded_count": responded_participants,
+                "total_count": total_participants,
+                "participants": participant_list
+            }
+        
+        channel = f"{trip_id}:status"
+        loop = asyncio.new_event_loop()
+        loop.run_until_complete(manager.broadcast(message, channel))
+        loop.close()
+    except Exception as e:
+        logger.error(f"Error in sync status broadcast for trip {trip_id}: {e}", exc_info=True)
 
 def trigger_pipeline(trip_id: UUID, prompt_version: str):
     logger.info(f"Triggering LangGraph pipeline for trip {trip_id} (prompt version: {prompt_version})")
@@ -58,12 +118,15 @@ def trigger_pipeline(trip_id: UUID, prompt_version: str):
             db.commit()
             logger.info(f"LangGraph pipeline succeeded for trip {trip_id}. Generated {len(final_state.get('recommendations', []))} recommendations and transitioned status to reveal.")
             
+            # Broadcast the updated status to all dashboard clients
+            broadcast_status_sync(trip_id)
+            
     except Exception as e:
         logger.error(f"Error running LangGraph pipeline for trip {trip_id}: {e}", exc_info=True)
 
 
 @router.post("/responses", status_code=status.HTTP_200_OK)
-def submit_response(
+async def submit_response(
     payload: SurveySubmit, 
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
@@ -110,6 +173,9 @@ def submit_response(
         prompt_version = "v1" if random.random() > 0.5 else "v2"
         background_tasks.add_task(trigger_pipeline, trip.id, prompt_version)
 
+    # Broadcast updated counts and state via WebSocket
+    await broadcast_trip_status(trip.id, db)
+
     return {"message": "Response recorded"}
 
 class TripStatusOut(BaseModel):
@@ -122,8 +188,32 @@ def get_trip_status(trip_id: UUID, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Trip not found")
     return TripStatusOut(status=trip.status.value)
 
+# New endpoint for initial dashboard status details
+class TripDashboardOut(BaseModel):
+    status: str
+    responded_count: int
+    total_count: int
+    participants: list
+
+@router.get("/trips/{trip_id}/dashboard", response_model=TripDashboardOut)
+def get_trip_dashboard(trip_id: UUID, db: Session = Depends(get_db)):
+    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+    
+    participants = db.query(Participant).filter(Participant.trip_id == trip_id).all()
+    total_participants = len(participants)
+    responded_participants = sum(1 for p in participants if p.responded)
+    
+    return TripDashboardOut(
+        status=trip.status.value,
+        responded_count=responded_participants,
+        total_count=total_participants,
+        participants=[{"name": p.name, "responded": p.responded} for p in participants]
+    )
+
 @router.post("/trips/{trip_id}/force-close", response_model=ForceCloseResponse)
-def force_close_survey(
+async def force_close_survey(
     trip_id: UUID, 
     payload: ForceCloseRequest,
     background_tasks: BackgroundTasks,
@@ -149,8 +239,12 @@ def force_close_survey(
     prompt_version = "v1" if random.random() > 0.5 else "v2"
     background_tasks.add_task(trigger_pipeline, trip.id, prompt_version)
     
+    # Broadcast status update immediately on force close
+    await broadcast_trip_status(trip.id, db)
+    
     return ForceCloseResponse(
         ok=True,
         responses_received=responded_participants,
         total_participants=total_participants
     )
+
