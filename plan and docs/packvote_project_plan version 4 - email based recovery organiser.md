@@ -1341,7 +1341,7 @@ To demonstrate professional software engineering practices, we will use Git feat
 - Wire graph in `graph.py`
 - Connect LangSmith (`LANGCHAIN_TRACING_V2=true`) and verify all 4 nodes appear as spans
 
-- [ ] **Step 5 — Prompt versioning**
+- [x] **Step 5 — Prompt versioning**
 - Push prompt text files to LangSmith Hub
 - Replace hardcoded strings with `hub.pull()`
 - Verify prompt version tag appears on runs in LangSmith
