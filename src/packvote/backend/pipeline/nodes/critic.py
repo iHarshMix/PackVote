@@ -1,6 +1,6 @@
 import os
 import logging
-import langchainhub
+from langsmith import Client
 from langchain_core.prompts import PromptTemplate
 from packvote.shared.schemas import CriticOutput
 from packvote.backend.core.llm import get_llm
@@ -11,14 +11,17 @@ logger = logging.getLogger(__name__)
 class HubWrapper:
     def __init__(self):
         try:
-            self.client = langchainhub.Client()
+            self.client = Client()
         except Exception:
             self.client = None
 
     def pull(self, owner_repo_commit: str):
         if not self.client:
-            raise RuntimeError("LangChain Hub Client not initialized")
-        return self.client.pull(owner_repo_commit)
+            raise RuntimeError("LangSmith Client not initialized")
+        # Strip tenant prefix if present for compatibility with local workspace configuration
+        if owner_repo_commit.startswith("packvote/"):
+            owner_repo_commit = owner_repo_commit.replace("packvote/", "", 1)
+        return self.client.pull_prompt(owner_repo_commit)
 
 hub = HubWrapper()
 
@@ -43,11 +46,12 @@ def critic_node(state: TripState) -> TripState:
     result: CriticOutput = chain.invoke({
         "recommendations": state["recommendations"],
         "aggregated": state["aggregated"],
-    })
+    }, config={"metadata": {"prompt_version": "v1"}, "tags": ["v1"]})
 
     state["critic_score"] = result.score
     state["critic_feedback"] = result.feedback
     return state
+
 
 def should_retry(state: TripState) -> str:
     if state["critic_score"] < 0.7 and state["retry_count"] < 2:
