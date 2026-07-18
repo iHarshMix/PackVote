@@ -30,5 +30,109 @@
     "budget_high": 25000,
     "best_months": ["March", "April", "May", "June"],
     "activities": ["Trekking", "Cafe hopping", "Camping"]
+  },
+  {
+    "name": "Pondicherry",
+    "vibe_tags": ["French", "Beach", "Heritage", "Quiet", "Cafes"],
+    "budget_low": 12000,
+    "budget_high": 30000,
+    "best_months": ["October", "November", "December", "January", "February", "March"],
+    "activities": ["Cycle tours", "Beach walks", "French food tasting"]
+  },
+  {
+    "name": "Leh Ladakh",
+    "vibe_tags": ["Adventure", "Mountains", "Lakes", "Scenic", "Roadtrip"],
+    "budget_low": 30000,
+    "budget_high": 80000,
+    "best_months": ["June", "July", "August", "September"],
+    "activities": ["Biking", "Camping at Pangong Lake", "Monastery visits"]
+  },
+  {
+    "name": "Udaipur",
+    "vibe_tags": ["Heritage", "Lakes", "Royal", "Romantic"],
+    "budget_low": 20000,
+    "budget_high": 75000,
+    "best_months": ["October", "November", "December", "January", "February", "March"],
+    "activities": ["Boat rides", "Palace tours", "Puppet shows"]
+  },
+  {
+    "name": "Munnar",
+    "vibe_tags": ["Hills", "Tea gardens", "Nature", "Quiet"],
+    "budget_low": 10000,
+    "budget_high": 30000,
+    "best_months": ["September", "October", "November", "December", "January", "February", "March", "April", "May"],
+    "activities": ["Tea factory visit", "Trekking", "Boating"]
+  },
+  {
+    "name": "Rishikesh",
+    "vibe_tags": ["Adventure", "Spiritual", "Ganges", "Yoga"],
+    "budget_low": 8000,
+    "budget_high": 25000,
+    "best_months": ["September", "October", "November", "March", "April", "May"],
+    "activities": ["River rafting", "Bungee jumping", "Ganga Aarti"]
+  },
+  {
+    "name": "Varkala",
+    "vibe_tags": ["Beach", "Cliffs", "Relaxing", "Sunset"],
+    "budget_low": 9000,
+    "budget_high": 28000,
+    "best_months": ["October", "November", "December", "January", "February", "March"],
+    "activities": ["Surfing", "Yoga on the cliff", "Seafood dining"]
+  },
+  {
+    "name": "Hampi",
+    "vibe_tags": ["History", "Heritage", "Ruins", "Spiritual", "Bouldering"],
+    "budget_low": 7000,
+    "budget_high": 22000,
+    "best_months": ["October", "November", "December", "January", "February"],
+    "activities": ["Coracle boat ride", "Bouldering", "Temple exploring"]
+  },
+  {
+    "name": "Srinagar",
+    "vibe_tags": ["Scenic", "Lakes", "Houseboats", "Hills", "Nature"],
+    "budget_low": 18000,
+    "budget_high": 55000,
+    "best_months": ["April", "May", "June", "July", "August", "September", "October"],
+    "activities": ["Shikara ride", "Houseboat stay", "Mughal garden walks"]
+  },
+  {
+    "name": "Havelock Island",
+    "vibe_tags": ["Beach", "Scuba", "Tropical", "Luxury", "Snorkeling"],
+    "budget_low": 25000,
+    "budget_high": 90000,
+    "best_months": ["November", "December", "January", "February", "March", "April"],
+    "activities": ["Scuba diving", "Kayaking", "Snorkeling at Elephant Beach"]
+  },
+  {
+    "name": "Gokarna",
+    "vibe_tags": ["Beach", "Trekking", "Quiet", "Nature"],
+    "budget_low": 8000,
+    "budget_high": 24000,
+    "best_months": ["October", "November", "December", "January", "February"],
+    "activities": ["Beach trekking", "Stargazing", "Temple visits"]
+  },
+  {
+    "name": "Alleppey",
+    "vibe_tags": ["Houseboats", "Backwaters", "Relaxing", "Nature"],
+    "budget_low": 12000,
+    "budget_high": 35000,
+    "best_months": ["September", "October", "November", "December", "January", "February", "March"],
+    "activities": ["Backwater cruises", "Ayurvedic massage", "Canoeing"]
+  },
+  {
+    "name": "Jaisalmer",
+    "vibe_tags": ["Desert", "Forts", "Camping", "Cultural", "Camel safari"],
+    "budget_low": 12000,
+    "budget_high": 40000,
+    "best_months": ["October", "November", "December", "January", "February", "March"],
+    "activities": ["Dune camping", "Camel safari", "Fort tours"]
+  },
+  {
+    "name": "Ooty",
+    "vibe_tags": ["Hills", "Scenic", "Nature", "Toytrain"],
+    "budget_low": 10000,
+    "budget_high": 32000,
+    "best_months": ["October", "November", "December", "January", "February", "March", "April", "May"],
+    "activities": ["Toy train ride", "Botanical garden tour", "Boating"]
   }
 ]
