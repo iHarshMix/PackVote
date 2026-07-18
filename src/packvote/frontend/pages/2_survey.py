@@ -31,6 +31,47 @@ if not token:
     st.error("Missing participant token in URL! Make sure you used the link provided by your organiser.")
     st.stop()
 
+# Validate token and check status with the backend on page load
+try:
+    resp = httpx.get(f"{BACKEND_URL}/participants/validate/{token}", timeout=10.0)
+    if resp.status_code == 404:
+        st.error("Invalid participant token! Please contact your organiser.")
+        st.stop()
+    elif resp.status_code != 200:
+        st.error(f"Error validating token: {resp.text}")
+        st.stop()
+    
+    validation = resp.json()
+    trip_id = validation["trip_id"]
+    st.session_state["trip_id"] = trip_id
+    st.session_state["token"] = token
+    st.query_params["trip_id"] = trip_id
+    st.query_params["token"] = token
+    
+    status = validation["trip_status"]
+    
+    if status == "setup":
+        st.info("🕒 The survey has not started yet. Please wait for the organiser to begin.")
+        st.stop()
+    elif status == "reveal":
+        st.success("🎉 Swiping is complete! Redirecting to Preference Reveal...")
+        st.switch_page("pages/4_reveal.py")
+    elif status in ("voting", "complete"):
+        st.success("🗳️ Swiping is complete! Redirecting to Voting & Results...")
+        st.switch_page("pages/5_vote.py")
+        
+    # If in survey phase but already responded
+    if validation["responded"]:
+        st.success("✅ You have already completed the survey! Waiting for other participants.")
+        if st.button("Open Live Progress Dashboard", use_container_width=True):
+            st.switch_page("pages/3_dashboard.py")
+        st.stop()
+
+except Exception as e:
+    st.error(f"Could not validate token with backend: {e}")
+    st.stop()
+
+
 # If we haven't swiped on all destinations yet
 if st.session_state.card_idx < len(DESTINATIONS):
     current_dest = DESTINATIONS[st.session_state.card_idx]

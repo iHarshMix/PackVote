@@ -72,7 +72,19 @@ def test_survey_endpoints(mock_trigger_pipeline):
     assert duplicate_resp.status_code == 400
     assert "already responded" in duplicate_resp.json()["detail"]
 
-    # 7. Force close survey
+    # 7. Validate token endpoint (after responded)
+    val_resp = client.get(f"/participants/validate/{p1_token}")
+    assert val_resp.status_code == 200
+    val_data = val_resp.json()
+    assert val_data["participant_name"] == "Participant 1"
+    assert val_data["responded"] is True
+    assert val_data["trip_status"] == "survey"
+
+    # Try with a fake token
+    val_fake = client.get(f"/participants/validate/00000000-0000-0000-0000-000000000000")
+    assert val_fake.status_code == 404
+
+    # 8. Force close survey
     force_close_resp = client.post(f"/trips/{trip_id}/force-close", json={
         "management_token": management_token
     })
@@ -80,3 +92,4 @@ def test_survey_endpoints(mock_trigger_pipeline):
     assert force_close_resp.json()["ok"]
     assert force_close_resp.json()["responses_received"] == 1
     assert force_close_resp.json()["total_participants"] == 3 # 2 + 1 organiser
+

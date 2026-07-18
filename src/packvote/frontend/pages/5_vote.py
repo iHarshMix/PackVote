@@ -17,9 +17,22 @@ if not trip_id:
 else:
     st.session_state["trip_id"] = trip_id
     st.query_params["trip_id"] = trip_id
+participant_name = None
 if token:
     st.session_state["token"] = token
     st.query_params["token"] = token
+    try:
+        resp = httpx.get(f"{BACKEND_URL}/participants/validate/{token}", timeout=10.0)
+        if resp.status_code == 200:
+            val_data = resp.json()
+            participant_name = val_data.get("participant_name")
+            if val_data.get("voted"):
+                st.session_state["vote_submitted"] = True
+        else:
+            st.warning("Could not validate your participant link. You might not be able to cast a vote.")
+    except Exception as e:
+        st.warning(f"Could not connect to backend to validate token: {e}")
+
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -143,6 +156,10 @@ st.markdown("""
 
 st.markdown('<div class="vote-header">🗳️ Rank Your Destinations</div>', unsafe_allow_html=True)
 st.markdown('<div class="vote-sub">Drag your favorites to the top — your ranking matters!</div>', unsafe_allow_html=True)
+
+if participant_name:
+    st.markdown(f"👋 **Welcome, {participant_name}!**")
+
 
 # ── Countdown Timer ──────────────────────────────────────────────────────────
 dashboard_data = fetch_dashboard(trip_id)

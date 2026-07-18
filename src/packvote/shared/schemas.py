@@ -80,6 +80,15 @@ class ResultOut(BaseModel):
     vote_breakdown: dict      # {"Goa": 3, "Coorg": 1, "Kasol": 1}
     ai_summary: str           # one-line AI-generated summary of why the winner won
 
+class ParticipantValidateOut(BaseModel):
+    """GET /participants/validate/{token} response."""
+    participant_id: UUID
+    participant_name: str
+    trip_id: UUID
+    trip_status: str
+    responded: bool
+    voted: bool
+
 
 # ── Structured LLM Output schemas ───────────────────────────────────────────
 

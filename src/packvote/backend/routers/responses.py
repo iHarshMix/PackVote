@@ -8,7 +8,7 @@ import asyncio
 import logging
 from packvote.backend.core.database import get_db, SessionLocal
 from packvote.backend.models.db import Trip, Participant, TripStatus, Response as DBResponse, Recommendation
-from packvote.shared.schemas import SurveySubmit, ForceCloseRequest, ForceCloseResponse
+from packvote.shared.schemas import SurveySubmit, ForceCloseRequest, ForceCloseResponse, ParticipantValidateOut
 from packvote.backend.pipeline.graph import pipeline
 from packvote.backend.core.config import settings
 from packvote.backend.websockets.manager import manager
@@ -247,4 +247,24 @@ async def force_close_survey(
         responses_received=responded_participants,
         total_participants=total_participants
     )
+
+
+@router.get("/participants/validate/{token}", response_model=ParticipantValidateOut)
+def validate_participant_token(token: UUID, db: Session = Depends(get_db)):
+    """Validate a participant token and return their info + trip status."""
+    participant = db.query(Participant).filter(Participant.unique_token == token).first()
+    if not participant:
+        raise HTTPException(status_code=404, detail="Participant not found")
+    trip = db.query(Trip).filter(Trip.id == participant.trip_id).first()
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+    return ParticipantValidateOut(
+        participant_id=participant.id,
+        participant_name=participant.name,
+        trip_id=trip.id,
+        trip_status=trip.status.value,
+        responded=participant.responded,
+        voted=participant.voted
+    )
+
 
