@@ -1305,6 +1305,7 @@ To demonstrate professional software engineering practices, we will use Git feat
 - `core/config.py` — pydantic-settings reading `.env`
 - `models/db.py` — ORM models for all 6 tables (including destinations), `trips` includes `organiser_email` + `management_token` + `vote_deadline`
 - `routers/trips.py` — `POST /trips` (creates trip + organiser's own `participants` row), `POST /trips/{id}/participants`
+  > **Implementation Update (2026-07-18):** Added `POST /trips/{id}/start-survey` endpoint to transition the trip status from `setup` to `survey`, allowing participants to begin swiping.
 - Docker Compose with pgvector Postgres (`docker compose up db -d`)
 - Enable pgvector extension: `CREATE EXTENSION IF NOT EXISTS vector;`
 - Seed destinations: embed `seeds/destinations.json` → insert into `destinations` table
@@ -1346,7 +1347,7 @@ To demonstrate professional software engineering practices, we will use Git feat
 - Replace hardcoded strings with `hub.pull()`
 - Verify prompt version tag appears on runs in LangSmith
 
-- [ ] **Step 6 — WebSocket live dashboard**
+- [x] **Step 6 — WebSocket live dashboard**
 - `websockets/manager.py` — connection manager + broadcast helper (supports multiple channels)
 - Wire status broadcast into `POST /responses` handler
 - `frontend/pages/3_dashboard.py` — live status UI
