@@ -1363,7 +1363,7 @@ To demonstrate professional software engineering practices, we will use Git feat
 - Ranked-choice tally with `pytest tests/test_tally.py`
 - Deterministic tiebreak: lowest `budget_estimate` wins (no extra LLM call)
 
-- [ ] **Step 8 — Result + polish**
+- [x] **Step 8 — Result + polish**
 - Winner reveal screen + share card
 - End-to-end test with 3 simulated participants via `httpx`
 - Verify all status transitions: `setup → survey → reveal → voting → complete`
