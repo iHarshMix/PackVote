@@ -1,0 +1,22 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy project specification and code
+COPY pyproject.toml ./
+COPY src/ /app/src/
+
+# Install dependencies and the packvote package
+RUN pip install --default-timeout=1000 --no-cache-dir .
+
+# Expose FastAPI port
+EXPOSE 8000
+
+# Command to run FastAPI application
+CMD ["uvicorn", "packvote.backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
