@@ -1,31 +1,30 @@
 services:
   db:
     image: pgvector/pgvector:pg16
+    restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: packvote
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pass}
+      POSTGRES_DB: ${POSTGRES_DB:-packvote}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d packvote"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-user} -d $${POSTGRES_DB:-packvote}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   backend:
     image: ${ECR_REGISTRY:-packvote}/packvote-backend:${IMAGE_TAG:-latest}
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
+    restart: always
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     env_file:
       - .env
     environment:
-      - DATABASE_URL=postgresql://user:pass@db:5432/packvote
+      - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-pass}@db:5432/${POSTGRES_DB:-packvote}}
     depends_on:
       db:
         condition: service_healthy
@@ -37,9 +36,7 @@ services:
 
   frontend:
     image: ${ECR_REGISTRY:-packvote}/packvote-frontend:${IMAGE_TAG:-latest}
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
+    restart: always
     ports:
       - "8501:8501"
     env_file:

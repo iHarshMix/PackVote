@@ -5,6 +5,10 @@ on:
     branches:
       - feat/step-9-deployment
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build-and-push:
     name: Build & Push to ECR
@@ -16,8 +20,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Log in to Amazon ECR
@@ -50,17 +53,17 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Copy docker-compose.yml to EC2
+      - name: Copy docker-compose.yml, deploy.sh, and .env.example to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          source: "docker-compose.yml"
-          target: "~/packvote/"
+          source: "docker-compose.yml,deploy.sh,.env.example"
+          target: "/opt/packvote/"
 
-      - name: SSH and Restart Containers
+      - name: SSH and Execute Deployment Script
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -68,20 +71,5 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            # Navigate to target folder
-            mkdir -p ~/packvote
-            cd ~/packvote
-
-            # Log in to AWS ECR using EC2 role credentials
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-
-            # Retrieve secrets from Secrets Manager and write to .env
-            aws secretsmanager get-secret-value --secret-id packvote/production --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > .env
-
-            # Add Registry and Image Tag environment variables to .env
-            echo "ECR_REGISTRY=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com" >> .env
-            echo "IMAGE_TAG=latest" >> .env
-
-            # Pull latest images and restart
-            docker compose pull
-            docker compose up -d
+            chmod +x /opt/packvote/deploy.sh
+            IMAGE_TAG=${{ github.sha }} /opt/packvote/deploy.sh
