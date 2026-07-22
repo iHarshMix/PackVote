@@ -8,12 +8,24 @@ st.set_page_config(page_title="Trip Survey", page_icon="📝")
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 # Load destinations directly from seeds (simulating an endpoint)
-SEEDS_PATH = os.path.join(os.path.dirname(__file__), "../../../../seeds/destinations.json")
-try:
-    with open(SEEDS_PATH, "r") as f:
-        DESTINATIONS = json.load(f)
-except Exception as e:
-    st.error(f"Failed to load destinations: {e}")
+candidate_paths = [
+    os.path.join(os.path.dirname(__file__), "../../../../seeds/destinations.json"),
+    "/app/seeds/destinations.json",
+    os.path.join(os.getcwd(), "seeds", "destinations.json"),
+]
+
+DESTINATIONS = None
+for path in candidate_paths:
+    if os.path.exists(path):
+        try:
+            with open(path, "r") as f:
+                DESTINATIONS = json.load(f)
+                break
+        except Exception:
+            pass
+
+if DESTINATIONS is None:
+    st.error("Failed to load destinations: seeds/destinations.json not found in expected paths.")
     st.stop()
 
 def init_state():

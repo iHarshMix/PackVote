@@ -21,6 +21,25 @@ app.include_router(recovery.router)
 app.include_router(websockets.router)
 app.include_router(votes.router)
 app.include_router(results.router)
+
+@app.on_event("startup")
+def auto_seed():
+    from packvote.backend.core.database import SessionLocal
+    from packvote.backend.models.db import Destination
+    db = SessionLocal()
+    try:
+        if db.query(Destination).count() == 0:
+            print("Destination table empty. Triggering automatic database seeding...")
+            try:
+                from scripts.seed_destinations import main as seed_main
+                seed_main()
+            except Exception as e:
+                print(f"Auto-seeding error: {e}")
+    except Exception as e:
+        print(f"Database startup check warning: {e}")
+    finally:
+        db.close()
+
 @app.get("/health")
 def health_check():
     return {"status": "ok"}

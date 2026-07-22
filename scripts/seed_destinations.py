@@ -12,8 +12,20 @@ def main():
         conn.commit()
     Base.metadata.create_all(bind=engine)
 
-    with open("seeds/destinations.json", "r") as f:
-        data = json.load(f)
+    import os
+    candidate_paths = [
+        "seeds/destinations.json",
+        "/app/seeds/destinations.json",
+        os.path.join(os.path.dirname(__file__), "../seeds/destinations.json"),
+    ]
+    data = None
+    for p in candidate_paths:
+        if os.path.exists(p):
+            with open(p, "r") as f:
+                data = json.load(f)
+            break
+    if data is None:
+        raise FileNotFoundError("Could not locate seeds/destinations.json")
 
     db = SessionLocal()
     try:

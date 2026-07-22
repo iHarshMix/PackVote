@@ -71,4 +71,7 @@ docker compose pull
 log "Restarting containerized services..."
 docker compose up -d --remove-orphans
 
+log "Cleaning up old, unused Docker images..."
+docker image prune -f
+
 log "=== Deployment Completed Successfully ==="

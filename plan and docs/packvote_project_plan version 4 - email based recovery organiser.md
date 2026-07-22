@@ -1368,7 +1368,7 @@ To demonstrate professional software engineering practices, we will use Git feat
 - End-to-end test with 3 simulated participants via `httpx`
 - Verify all status transitions: `setup → survey → reveal → voting → complete`
 
-- [ ] **Step 9 — Deployment**
+- [x] **Step 9 — Deployment**
 - `Dockerfile.backend` + `Dockerfile.frontend`
 - `docker-compose.yml` wiring all three services (pgvector image for DB)
 - GitHub Actions `deploy.yml` — build → ECR → SSH into EC2 → pull & restart

@@ -8,9 +8,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy project specification and code
+# Copy project specification, code, seeds, and prompts
 COPY pyproject.toml ./
 COPY src/ /app/src/
+COPY seeds/ /app/seeds/
+COPY prompts/ /app/prompts/
 
 # Install dependencies and the packvote package
 RUN pip install --default-timeout=1000 --no-cache-dir .
